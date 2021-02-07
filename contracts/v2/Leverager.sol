@@ -45,7 +45,7 @@ contract Leverager is FlashLoanReceiverBaseV2, Withdrawable {
         // Therefore ensure your contract has enough to repay
         // these amounts.
         
-        (address _caller, address _asset) = abi.decode(params, (address, address));
+        (address _caller, address _asset, uint amtin) = abi.decode(params, (address, address, uint));
 
         // Approve the LendingPool contract allowance to *pull* the owed amount
         for (uint i = 0; i < assets.length; i++) {
@@ -57,10 +57,12 @@ contract Leverager is FlashLoanReceiverBaseV2, Withdrawable {
             path[1] = address(_asset);
             IERC20(assets[i]).approve(uniswap, amounts[i]);
             uint out = IUniswapV2Router02(uniswap).swapExactTokensForTokens(amounts[i], 0, path, address(this), uint(-1))[1];
-            IERC20(_asset).approve(address(LENDING_POOL), out);
-            LENDING_POOL.deposit(_asset, out, _caller, 0);
+            amtin = amtin.add(out);
 
         }
+
+        IERC20(_asset).approve(address(LENDING_POOL), amtin);
+        LENDING_POOL.deposit(_asset, amtin, _caller, 0);
         
         return true;
     }
@@ -110,8 +112,6 @@ contract Leverager is FlashLoanReceiverBaseV2, Withdrawable {
         uint amount = IUniswapV2Router02(uniswap).getAmountsIn(amtout.sub(amtin), path)[0];
 
         IERC20(_asset).transferFrom(msg.sender, address(this), amtin);
-        IERC20(_asset).approve(address(LENDING_POOL), amtin);
-        LENDING_POOL.deposit(_asset, amtin, msg.sender, 0);
 
         address[] memory assets = new address[](1);
         assets[0] = _debtasset;
@@ -121,7 +121,7 @@ contract Leverager is FlashLoanReceiverBaseV2, Withdrawable {
 
         address receiverAddress = address(this);
         address onBehalfOf = msg.sender;
-        bytes memory params = abi.encode(msg.sender, _asset);
+        bytes memory params = abi.encode(msg.sender, _asset, amtin);
 
         uint256[] memory modes = new uint256[](assets.length);
 
