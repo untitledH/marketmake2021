@@ -20,12 +20,12 @@ def aave_lending_pool_v2(Contract):
 
 
 @pytest.fixture(scope="module")
-def flashloan_v2(FlashloanV2, aave_lending_pool_v2, accounts):
+def leverager(Leverager, aave_lending_pool_v2, accounts):
     """
     Deploy a `Flashloan` contract from `web3.eth.accounts[0]` and yields the
     generated object.
     """
-    yield FlashloanV2.deploy(aave_lending_pool_v2, {"from": accounts[0]})
+    yield Leverager.deploy(aave_lending_pool_v2, {"from": accounts[0]})
 
 
 # Mainnet reserve token fixtures - addresses are taken from
@@ -35,6 +35,11 @@ def flashloan_v2(FlashloanV2, aave_lending_pool_v2, accounts):
 @pytest.fixture(scope="module")
 def WETH(Contract):
     yield interface.ERC20("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
+
+
+@pytest.fixture(scope="module")
+def AWETH(Contract):
+    yield interface.IAToken("0x030bA81f1c18d280636F32af80b9AAd02Cf0854e")
 
 
 @pytest.fixture(scope="module")
@@ -50,6 +55,11 @@ def DAI(Contract):
 @pytest.fixture(scope="module")
 def USDC(Contract):
     yield interface.ERC20("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+
+
+@pytest.fixture(scope="module")
+def VDUSDC(Contract):
+    yield interface.IVariableDebtToken("0x619beb58998eD2278e08620f97007e1116D5D25b")
 
 
 @pytest.fixture(scope="module")
